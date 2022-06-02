@@ -1,0 +1,33 @@
+﻿            double x = 237.2, y = 148.4,c=12.3;
+            List<double> xy = new List<double>();
+            Plaintext xPlain = new Plaintext();
+            Plaintext yPlain = new Plaintext();
+            Plaintext cPlain=new Plaintext();
+            Plaintext xyPlain = new Plaintext();
+            encoder.Encode(x, scale, xPlain);
+            encoder.Encode(y, scale, yPlain);
+            encoder.Encode(c, scale, cPlain);
+            Ciphertext xEncrypted = new Ciphertext();
+            Ciphertext yEncrypted = new Ciphertext();
+            Ciphertext cEncrypted = new Ciphertext();
+            Ciphertext xyEncrypted = new Ciphertext();
+
+            encryptor.Encrypt(xPlain, xEncrypted);
+            encryptor.Encrypt(yPlain, yEncrypted);
+            encryptor.Encrypt(cPlain, cEncrypted);
+
+            Data data = new Data()
+            {
+                x = CiphertextToBase64String(xEncrypted),
+                y = CiphertextToBase64String(yEncrypted)
+            };
+            Data data1;
+            StringContent content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
+            data1 = JsonConvert.DeserializeObject<Data>(await content.ReadAsStringAsync());
+            Ciphertext s1 = BuildCiphertextFromBase64String(data1.x, context);
+            Ciphertext s2 = BuildCiphertextFromBase64String(data1.y, context);
+            evaluator.Multiply(s1,cEncrypted, xyEncrypted);
+            decryptor.Decrypt(xyEncrypted, xyPlain);
+            encoder.Decode(xyPlain, xy);
+
+            Console.WriteLine(xy[0]);
